@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sistem Aktif - Seçim | OBSCURRIMUS</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        /* Bu sayfaya özel stiller */
+        body {
+            background-color: #000; /* Siyah arka plan */
+            color: #0F0; /* Matrix yeşili yazı rengi */
+            text-align: center;
+            font-family: 'Courier New', Courier, monospace; /* Monospace font */
+        }
+
+        .page-container {
+            margin-top: 50px;
+            padding: 20px;
+        }
+
+        /* Seçim Kutusu Stilleri */
+        .matrix-choice-box {
+            border: 2px solid #0F0;
+            padding: 30px;
+            margin: 30px auto;
+            max-width: 700px;
+            background: rgba(0, 20, 0, 0.8);
+            box-shadow: 0 0 15px #0F0, inset 0 0 15px #0F0; /* Yeşil neon parlama */
+        }
+
+        .choice-intro {
+            font-size: 1.2rem;
+            margin-bottom: 30px;
+        }
+
+        .pill-container {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            gap: 20px;
+        }
+
+        /* Genel Hap Stili */
+        .pill {
+            padding: 50px 50px;
+            border: 2px solid;
+            cursor: pointer;
+            transition: all 0.4s ease;
+            flex: 1;
+            min-width: 200px;
+            text-transform: uppercase;
+            font-weight: bold;
+            letter-spacing: 2px;
+        }
+
+        /* Mavi Hap Stilleri */
+        .blue-pill {
+            color: #007bff;
+            border-color: #007bff;
+            box-shadow: 0 0 10px #007bff;
+        }
+
+        .blue-pill:hover {
+            background-color: #007bff;
+            color: #000;
+            box-shadow: 0 0 25px #007bff, inset 0 0 10px #000;
+            transform: scale(1.05);
+        }
+
+        /* Kırmızı Hap Stilleri */
+        .red-pill {
+            color: #ff3333;
+            border-color: #ff3333;
+            box-shadow: 0 0 10px #ff3333;
+        }
+
+        .red-pill:hover {
+            background-color: #ff3333;
+            color: #000;
+            box-shadow: 0 0 25px #ff3333, inset 0 0 10px #000;
+            transform: scale(1.05);
+        }
+
+        .pill-desc {
+            display: block;
+            font-size: 0.7rem;
+            margin-top: 15px;
+            font-weight: normal;
+            text-transform: none;
+            letter-spacing: normal;
+            opacity: 0.8;
+        }
+
+        /* Geri Dön Butonu Stili */
+        .back-button {
+            margin-top: 40px;
+            padding: 12px 24px;
+            background-color: transparent;
+            color: #0F0;
+            border: 1px solid #0F0;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1.1rem;
+            transition: all 0.3s ease;
+        }
+        .back-button:hover {
+            background-color: #0F0;
+            color: #000;
+            box-shadow: 0 0 10px #0F0;
+        }
+    </style>
+</head>
+<body>
+<img src="img/shutterstock_740523562-ai.webp" alt="duvar kağıdı" style="width: 100%; height: auto; position: fixed; top: 0; left: 0; z-index: -1;">
+    <div class="page-container">
+        <h1>SİSTEM AKTİF</h1>
+        <p>Matrix Simülasyonu Yürütülüyor...</p>
+
+        <div class="matrix-choice-box">
+            <p class="choice-intro">Ne yazık ki sana Matrix'in ne olduğunu anlatamam. Bunu kendin görmek zorundasın. Bu senin son şansın. Bundan sonra geri dönüş yok.</p>
+            
+            <div class="pill-container">
+                <div class="pill blue-pill" onclick="choosePill('blue')">
+                    MAVİ HAP
+                    <span class="pill-desc">Hikaye biter, yatağında uyanırsın ve neye inanmak istiyorsan ona inanırsın.</span>
+                </div>
+                
+                <div class="pill red-pill" onclick="choosePill('red')">
+                    KIRMIZI HAP
+                    <span class="pill-desc">Harikalar diyarında kalırsın ve ben sana tavşan deliğinin ne kadar derin olduğunu gösteririm.</span>
+                </div>
+            </div>
+        </div>
+        
+        <button class="back-button" onclick="window.location.href='index.html'">
+            &#8592; Ana Sisteme Dön
+        </button>
+    </div>
+
+    <script src="script.js"></script>
+
+    <script>
+        // Hap seçimi için basit bir fonksiyon
+        function choosePill(color) {
+            if (color === 'blue') {
+                // Mavi hap seçildiğinde yapılacak işlem
+                alert("Mavi hapı seçtin. Cehalet mutluluktur... Uyanıyorsun.");
+                window.location.href = 'index.html'; // Ana sayfaya (gerçekliğe) geri dön
+            } else if (color === 'red') {
+                // Kırmızı hap seçildiğinde yapılacak işlem
+                alert("Kırmızı hapı seçtin. Gerçeğe hoş geldin, Neo.");
+                // Buradan sonra ne olacağına sen karar ver. 
+                // Örneğin: window.location.href = 'page3.html'; diyerek bir sonraki sayfaya geçebilirsin.
+                // Şimdilik sadece bir uyarı gösteriyoruz.
+            }
+        }
+    </script>
+</body>
+</html>s

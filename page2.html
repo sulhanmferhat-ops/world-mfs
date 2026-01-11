@@ -1,0 +1,308 @@
+<!DOCTYPE html>
+<html lang="tr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Sistem Aktif - Oyun | OBSCURRIMUS</title>
+    <link rel="stylesheet" href="style.css">
+    <style>
+        body {
+            background-color: #000;
+            color: #0F0;
+            text-align: center;
+            font-family: 'Courier New', Courier, monospace;
+            overflow: hidden; /* Kaydırmayı engelle */
+            user-select: none; /* Yazı seçimini engelle */
+            touch-action: none; /* Mobilde yakınlaştırmayı engelle */
+        }
+
+        .page-container {
+            margin-top: 10px;
+            padding: 0 10px;
+        }
+
+        h1 { font-size: 1.5rem; margin-bottom: 5px; }
+        p { font-size: 0.8rem; margin-bottom: 10px; }
+
+        /* Oyun Alanı - Mobilde ekrana sığması için max-width eklendi */
+        #game-container {
+            position: relative;
+            width: 100%;
+            max-width: 600px; /* Bilgisayarda çok büyümesin */
+            aspect-ratio: 3/2; /* En-boy oranını koru */
+            margin: 0 auto;
+            border: 2px solid #0F0;
+            box-shadow: 0 0 10px rgba(0, 255, 0, 0.4);
+            background-color: rgba(0, 10, 0, 0.95);
+        }
+
+        canvas {
+            display: block;
+            width: 100%;
+            height: 100%;
+        }
+
+        /* Skor Tabelası */
+        #score-board {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 1.2rem;
+            font-weight: bold;
+            z-index: 10;
+            text-shadow: 0 0 5px #0F0;
+        }
+
+        /* Oyun Bitti Mesajı */
+        #game-over-message {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 1.5rem;
+            color: #ff3333;
+            text-shadow: 0 0 10px red;
+            display: none;
+            z-index: 20;
+            background: rgba(0, 0, 0, 0.95);
+            padding: 20px;
+            border: 1px solid red;
+            width: 80%;
+        }
+
+        .restart-btn {
+            font-size: 1rem; 
+            cursor: pointer; 
+            color: #fff;
+            margin-top: 10px;
+            display: inline-block;
+            border: 1px solid #fff;
+            padding: 8px 15px;
+        }
+
+        /* MOBİL KONTROLLER */
+        .mobile-controls {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            margin-top: 15px;
+        }
+
+        .control-btn {
+            background: rgba(0, 20, 0, 0.8);
+            border: 2px solid #0F0;
+            color: #0F0;
+            padding: 15px 30px;
+            font-size: 1.2rem;
+            font-family: inherit;
+            border-radius: 10px;
+            cursor: pointer;
+            touch-action: manipulation; /* Dokunmatik gecikmesini önle */
+            width: 120px;
+            font-weight: bold;
+        }
+
+        .control-btn:active {
+            background: #0F0;
+            color: #000;
+        }
+
+        .back-button {
+            margin-top: 15px;
+            padding: 8px 16px;
+            background-color: transparent;
+            color: #0F0;
+            border: 1px solid #0F0;
+            cursor: pointer;
+            font-family: inherit;
+            font-size: 1rem;
+        }
+    </style>
+</head>
+<body>
+
+    <div class="page-container">
+        <h1>MATRİX'TEN KAÇIŞ</h1>
+        <p>Bilgisayar: Yön Tuşları | Mobil: Aşağıdaki Butonlar</p>
+
+        <div id="game-container">
+            <div id="score-board">Skor: 0</div>
+            <div id="game-over-message">
+                BAĞLANTI KOPTU!<br>
+                <div class="restart-btn" onclick="startGame()">[ TEKRAR DENE ]</div>
+            </div>
+            <canvas id="gameCanvas"></canvas>
+        </div>
+
+        <div class="mobile-controls">
+            <button class="control-btn" id="btn-left">&#8592; SOL</button>
+            <button class="control-btn" id="btn-right">SAĞ &#8594;</button>
+        </div>
+
+        <button class="back-button" onclick="window.location.href='index.html'">
+            &#8592; Ana Sisteme Dön
+        </button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+        const scoreElement = document.getElementById('score-board');
+        const gameOverMessage = document.getElementById('game-over-message');
+
+        // Canvas'ın iç çözünürlüğünü sabit tutuyoruz (görüntü kalitesi için)
+        canvas.width = 600;
+        canvas.height = 400;
+
+        let score = 0;
+        let gameLoop;
+        let isGameOver = false;
+        let frameCount = 0;
+
+        const player = {
+            x: canvas.width / 2 - 15,
+            y: canvas.height - 40,
+            width: 30,
+            height: 30,
+            color: '#0F0',
+            speed: 8, // Mobilde daha rahat hissetmesi için hızı biraz artırdım
+            dx: 0
+        };
+
+        let obstacles = [];
+        const obstacleChars = '01';
+
+        function createObstacle() {
+            const size = Math.random() * 20 + 10; 
+            obstacles.push({
+                x: Math.random() * (canvas.width - size),
+                y: -size,
+                size: size,
+                text: obstacleChars.charAt(Math.floor(Math.random() * obstacleChars.length)),
+                speed: Math.random() * 5 + 3
+            });
+        }
+
+        function drawPlayer() {
+            ctx.fillStyle = player.color;
+            ctx.shadowBlur = 15;
+            ctx.shadowColor = player.color;
+            ctx.fillRect(player.x, player.y, player.width, player.height);
+            ctx.shadowBlur = 0; 
+        }
+
+        function drawObstacles() {
+            ctx.fillStyle = 'rgba(200, 255, 200, 0.9)';
+            ctx.font = 'bold 20px monospace';
+            obstacles.forEach(obs => {
+                ctx.fillText(obs.text, obs.x, obs.y);
+            });
+        }
+
+        function movePlayer() {
+            player.x += player.dx;
+            if (player.x < 0) player.x = 0;
+            if (player.x + player.width > canvas.width) player.x = canvas.width - player.width;
+        }
+
+        function updateGame() {
+            if (isGameOver) return;
+
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            drawPlayer();
+            drawObstacles();
+            movePlayer();
+
+            obstacles.forEach(obs => obs.y += obs.speed);
+            
+            for(let i = obstacles.length - 1; i >= 0; i--) {
+                if(obstacles[i].y > canvas.height) {
+                    obstacles.splice(i, 1);
+                    score += 10;
+                    scoreElement.textContent = `Skor: ${score}`;
+                }
+            }
+
+            obstacles.forEach(obs => {
+                // Çarpışma toleransını artırdım (mobilde oynamak zordur)
+                if (
+                    player.x < obs.x + 15 && 
+                    player.x + player.width > obs.x + 5 &&
+                    player.y < obs.y &&
+                    player.y + player.height > obs.y - 15
+                ) {
+                    endGame();
+                }
+            });
+
+            frameCount++;
+            if (frameCount % 12 === 0) { 
+                createObstacle();
+            }
+
+            gameLoop = requestAnimationFrame(updateGame);
+        }
+
+        function startGame() {
+            score = 0;
+            obstacles = [];
+            isGameOver = false;
+            frameCount = 0;
+            scoreElement.textContent = 'Skor: 0';
+            gameOverMessage.style.display = 'none';
+            player.x = canvas.width / 2 - 15;
+            player.dx = 0; // Hareketi sıfırla
+            
+            if(gameLoop) cancelAnimationFrame(gameLoop);
+            updateGame();
+        }
+
+        function endGame() {
+            isGameOver = true;
+            cancelAnimationFrame(gameLoop);
+            gameOverMessage.style.display = 'block';
+            gameOverMessage.querySelector('.restart-btn').previousSibling.textContent = `BAĞLANTI KOPTU! - Puan: ${score}`;
+        }
+
+        // --- KLAVYE KONTROLLERİ ---
+        document.addEventListener('keydown', (e) => {
+            if (e.key === 'ArrowRight' || e.key === 'd') player.dx = player.speed;
+            if (e.key === 'ArrowLeft' || e.key === 'a') player.dx = -player.speed;
+        });
+
+        document.addEventListener('keyup', (e) => {
+            if (
+                (e.key === 'ArrowRight' || e.key === 'd') && player.dx > 0 ||
+                (e.key === 'ArrowLeft' || e.key === 'a') && player.dx < 0
+            ) {
+                player.dx = 0;
+            }
+        });
+
+        // --- MOBİL DOKUNMATİK KONTROLLERİ ---
+        const btnLeft = document.getElementById('btn-left');
+        const btnRight = document.getElementById('btn-right');
+
+        // Hareket Başlatma Fonksiyonları
+        const startLeft = (e) => { e.preventDefault(); player.dx = -player.speed; };
+        const startRight = (e) => { e.preventDefault(); player.dx = player.speed; };
+        const stopMove = (e) => { e.preventDefault(); player.dx = 0; };
+
+        // Sol Buton Olayları
+        btnLeft.addEventListener('mousedown', startLeft);
+        btnLeft.addEventListener('touchstart', startLeft);
+        btnLeft.addEventListener('mouseup', stopMove);
+        btnLeft.addEventListener('touchend', stopMove);
+
+        // Sağ Buton Olayları
+        btnRight.addEventListener('mousedown', startRight);
+        btnRight.addEventListener('touchstart', startRight);
+        btnRight.addEventListener('mouseup', stopMove);
+        btnRight.addEventListener('touchend', stopMove);
+
+        window.onload = startGame;
+
+    </script>
+</body>
+</html>
